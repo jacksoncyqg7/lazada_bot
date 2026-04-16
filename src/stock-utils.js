@@ -29,6 +29,18 @@ export function detectStock(html, availableTexts, unavailableTexts) {
   return { status: "unknown", match: null };
 }
 
+export function inspectStockSignals(html, availableTexts, unavailableTexts) {
+  const raw = html.toLowerCase();
+  const text = normalizeHtml(html);
+
+  return {
+    htmlLength: html.length,
+    normalizedLength: text.length,
+    available: availableTexts.map((candidate) => inspectCandidate(candidate, raw, text)),
+    unavailable: unavailableTexts.map((candidate) => inspectCandidate(candidate, raw, text)),
+  };
+}
+
 export function normalizeHtml(html) {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -74,4 +86,24 @@ export function isAllowedLazadaUrl(value) {
   } catch {
     return false;
   }
+}
+
+function inspectCandidate(candidate, raw, text) {
+  const needle = candidate.toLowerCase();
+  const rawIndex = raw.indexOf(needle);
+  const normalizedIndex = text.indexOf(needle);
+
+  return {
+    candidate,
+    inRaw: rawIndex !== -1,
+    inNormalized: normalizedIndex !== -1,
+    rawSnippet: rawIndex !== -1 ? extractSnippet(raw, rawIndex, needle.length) : null,
+    normalizedSnippet: normalizedIndex !== -1 ? extractSnippet(text, normalizedIndex, needle.length) : null,
+  };
+}
+
+function extractSnippet(value, index, length) {
+  const start = Math.max(0, index - 60);
+  const end = Math.min(value.length, index + length + 60);
+  return value.slice(start, end).replace(/\s+/g, " ").trim();
 }

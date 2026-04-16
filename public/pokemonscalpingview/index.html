@@ -255,6 +255,8 @@
           </div>
         </div>
 
+        <p class="note" id="debug-summary">Debug summary: waiting for the first check.</p>
+
         <p class="note">Allow pop-ups for this page. The popup window is reserved when monitoring starts, then navigated to Lazada only if the server reports stock.</p>
       </section>
     </main>
@@ -269,6 +271,7 @@
       const attemptCount = document.getElementById("attempt-count");
       const lastMatch = document.getElementById("last-match");
       const lastTime = document.getElementById("last-time");
+      const debugSummary = document.getElementById("debug-summary");
       let activeRunId = 0;
       let polling = false;
       let attempts = 0;
@@ -303,6 +306,7 @@
         polling = true;
         attempts = 0;
         updateMetrics({ attempts: 0, match: "n/a", time: "n/a" });
+        debugSummary.textContent = "Debug summary: waiting for the first check.";
         setBusy(true);
         setStatus(`Monitoring every ${intervalSeconds}s...`, "neutral");
 
@@ -335,6 +339,7 @@
               match: payload.match || "n/a",
               time: new Date().toLocaleTimeString(),
             });
+            setDebugSummary(payload.debug);
 
             if (payload.status === "in_stock") {
               setStatus(`Stock detected via "${payload.match}". Opening product page.`, "success");
@@ -391,6 +396,17 @@
         attemptCount.textContent = String(attempts);
         lastMatch.textContent = match;
         lastTime.textContent = time;
+      }
+
+      function setDebugSummary(debug) {
+        if (!debug) {
+          debugSummary.textContent = "Debug summary: no debug data returned.";
+          return;
+        }
+
+        const available = (debug.availableFound || []).map((item) => item.candidate).join(", ") || "none";
+        const unavailable = (debug.unavailableFound || []).map((item) => item.candidate).join(", ") || "none";
+        debugSummary.textContent = `Debug summary: html=${debug.htmlLength}, normalized=${debug.normalizedLength}, available markers=${available}, unavailable markers=${unavailable}.`;
       }
 
       function sleep(ms) {

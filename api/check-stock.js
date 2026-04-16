@@ -2,6 +2,7 @@ import {
   DEFAULT_USER_AGENT,
   detectStock,
   fetchPage,
+  inspectStockSignals,
   isAllowedLazadaUrl,
 } from "../src/stock-utils.js";
 
@@ -26,16 +27,33 @@ export default async function handler(req, res) {
   }
 
   try {
+    const requestId = crypto.randomUUID();
+    console.log(`[check-stock] ${requestId} start url=${url}`);
     const html = await fetchPage(url, REQUEST_TIMEOUT_MS, USER_AGENT);
     const result = detectStock(html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
+    const debug = inspectStockSignals(html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
+
+    console.log(
+      `[check-stock] ${requestId} result status=${result.status} match=${result.match ?? "n/a"} htmlLength=${debug.htmlLength} normalizedLength=${debug.normalizedLength}`,
+    );
+    console.log(
+      `[check-stock] ${requestId} available=${JSON.stringify(debug.available)} unavailable=${JSON.stringify(debug.unavailable)}`,
+    );
 
     res.status(200).json({
       ok: true,
       url,
       status: result.status,
       match: result.match,
+      debug: {
+        htmlLength: debug.htmlLength,
+        normalizedLength: debug.normalizedLength,
+        availableFound: debug.available.filter((item) => item.inRaw || item.inNormalized),
+        unavailableFound: debug.unavailable.filter((item) => item.inRaw || item.inNormalized),
+      },
     });
   } catch (error) {
+    console.error(`[check-stock] request failed url=${url} error=${error?.message ?? error}`);
     res.status(502).json({
       ok: false,
       error: error?.message ?? "Stock check failed.",
