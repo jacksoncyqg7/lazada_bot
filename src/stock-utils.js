@@ -36,6 +36,21 @@ export function inspectStockSignals(html, availableTexts, unavailableTexts) {
   return {
     htmlLength: html.length,
     normalizedLength: text.length,
+    title: extractTitle(html),
+    rawPreview: html.slice(0, 500),
+    contains: {
+      addToCartRaw: raw.includes("add to cart"),
+      buyNowRaw: raw.includes("buy now"),
+      soldOutRaw: raw.includes("sold out"),
+      outOfStockRaw: raw.includes("out of stock"),
+      captchaRaw: raw.includes("captcha"),
+      robotRaw: raw.includes("robot"),
+      windowLocationRaw: raw.includes("window.location"),
+      metaRefreshRaw: raw.includes("http-equiv=\"refresh\"") || raw.includes("http-equiv='refresh'"),
+      ogTitleRaw: raw.includes("og:title"),
+      pdpRaw: raw.includes("pdp"),
+      lazadaRaw: raw.includes("lazada"),
+    },
     available: availableTexts.map((candidate) => inspectCandidate(candidate, raw, text)),
     unavailable: unavailableTexts.map((candidate) => inspectCandidate(candidate, raw, text)),
   };
@@ -73,7 +88,15 @@ export async function fetchPage(url, timeoutMs = 10000, userAgent = DEFAULT_USER
       throw new Error(`HTTP ${response.status}`);
     }
 
-    return await response.text();
+    return {
+      html: await response.text(),
+      finalUrl: response.url,
+      status: response.status,
+      redirected: response.redirected,
+      contentType: response.headers.get("content-type"),
+      server: response.headers.get("server"),
+      cacheControl: response.headers.get("cache-control"),
+    };
   } finally {
     clearTimeout(timeout);
   }
@@ -106,4 +129,13 @@ function extractSnippet(value, index, length) {
   const start = Math.max(0, index - 60);
   const end = Math.min(value.length, index + length + 60);
   return value.slice(start, end).replace(/\s+/g, " ").trim();
+}
+
+function extractTitle(html) {
+  const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  if (!match) {
+    return null;
+  }
+
+  return match[1].replace(/\s+/g, " ").trim();
 }

@@ -256,6 +256,7 @@
         </div>
 
         <p class="note" id="debug-summary">Debug summary: waiting for the first check.</p>
+        <pre class="note" id="debug-detail" style="white-space: pre-wrap;">Debug detail: waiting for the first check.</pre>
 
         <p class="note">Allow pop-ups for this page. The popup window is reserved when monitoring starts, then navigated to Lazada only if the server reports stock.</p>
       </section>
@@ -272,6 +273,7 @@
       const lastMatch = document.getElementById("last-match");
       const lastTime = document.getElementById("last-time");
       const debugSummary = document.getElementById("debug-summary");
+      const debugDetail = document.getElementById("debug-detail");
       let activeRunId = 0;
       let polling = false;
       let attempts = 0;
@@ -307,6 +309,7 @@
         attempts = 0;
         updateMetrics({ attempts: 0, match: "n/a", time: "n/a" });
         debugSummary.textContent = "Debug summary: waiting for the first check.";
+        debugDetail.textContent = "Debug detail: waiting for the first check.";
         setBusy(true);
         setStatus(`Monitoring every ${intervalSeconds}s...`, "neutral");
 
@@ -401,12 +404,23 @@
       function setDebugSummary(debug) {
         if (!debug) {
           debugSummary.textContent = "Debug summary: no debug data returned.";
+          debugDetail.textContent = "Debug detail: no debug data returned.";
           return;
         }
 
         const available = (debug.availableFound || []).map((item) => item.candidate).join(", ") || "none";
         const unavailable = (debug.unavailableFound || []).map((item) => item.candidate).join(", ") || "none";
         debugSummary.textContent = `Debug summary: html=${debug.htmlLength}, normalized=${debug.normalizedLength}, available markers=${available}, unavailable markers=${unavailable}.`;
+        debugDetail.textContent =
+          `finalUrl: ${debug.finalUrl || "n/a"}\n` +
+          `responseStatus: ${debug.responseStatus ?? "n/a"}\n` +
+          `redirected: ${String(debug.redirected)}\n` +
+          `contentType: ${debug.contentType || "n/a"}\n` +
+          `server: ${debug.server || "n/a"}\n` +
+          `cacheControl: ${debug.cacheControl || "n/a"}\n` +
+          `title: ${debug.title || "n/a"}\n` +
+          `contains: ${JSON.stringify(debug.contains || {})}\n` +
+          `rawPreview: ${debug.rawPreview || "n/a"}`;
       }
 
       function sleep(ms) {

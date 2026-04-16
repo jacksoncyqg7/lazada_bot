@@ -29,25 +29,41 @@ export default async function handler(req, res) {
   try {
     const requestId = crypto.randomUUID();
     console.log(`[check-stock] ${requestId} start url=${url}`);
-    const html = await fetchPage(url, REQUEST_TIMEOUT_MS, USER_AGENT);
-    const result = detectStock(html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
-    const debug = inspectStockSignals(html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
+    const page = await fetchPage(url, REQUEST_TIMEOUT_MS, USER_AGENT);
+    const result = detectStock(page.html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
+    const debug = inspectStockSignals(page.html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
 
     console.log(
-      `[check-stock] ${requestId} result status=${result.status} match=${result.match ?? "n/a"} htmlLength=${debug.htmlLength} normalizedLength=${debug.normalizedLength}`,
+      `[check-stock] ${requestId} fetch finalUrl=${page.finalUrl} status=${page.status} redirected=${page.redirected} contentType=${page.contentType ?? "n/a"} server=${page.server ?? "n/a"}`,
     );
     console.log(
-      `[check-stock] ${requestId} available=${JSON.stringify(debug.available)} unavailable=${JSON.stringify(debug.unavailable)}`,
+      `[check-stock] ${requestId} result status=${result.status} match=${result.match ?? "n/a"} htmlLength=${debug.htmlLength} normalizedLength=${debug.normalizedLength} title=${JSON.stringify(debug.title)}`,
+    );
+    console.log(
+      `[check-stock] ${requestId} contains=${JSON.stringify(debug.contains)} available=${JSON.stringify(debug.available)} unavailable=${JSON.stringify(debug.unavailable)}`,
+    );
+    console.log(
+      `[check-stock] ${requestId} rawPreview=${JSON.stringify(debug.rawPreview)}`,
     );
 
     res.status(200).json({
       ok: true,
       url,
+      finalUrl: page.finalUrl,
       status: result.status,
       match: result.match,
       debug: {
+        finalUrl: page.finalUrl,
+        responseStatus: page.status,
+        redirected: page.redirected,
+        contentType: page.contentType,
+        server: page.server,
+        cacheControl: page.cacheControl,
         htmlLength: debug.htmlLength,
         normalizedLength: debug.normalizedLength,
+        title: debug.title,
+        rawPreview: debug.rawPreview,
+        contains: debug.contains,
         availableFound: debug.available.filter((item) => item.inRaw || item.inNormalized),
         unavailableFound: debug.unavailable.filter((item) => item.inRaw || item.inNormalized),
       },
