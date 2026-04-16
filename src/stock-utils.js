@@ -56,6 +56,24 @@ export function inspectStockSignals(html, availableTexts, unavailableTexts) {
   };
 }
 
+export function detectBlocked(html) {
+  const raw = html.toLowerCase();
+
+  if (
+    raw.includes("captcha") ||
+    raw.includes("/_____tmd_____/punish") ||
+    raw.includes("x5secdata")
+  ) {
+    return {
+      status: "blocked",
+      match: "captcha",
+      reason: "Lazada returned an anti-bot challenge page.",
+    };
+  }
+
+  return null;
+}
+
 export function normalizeHtml(html) {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")

@@ -1,5 +1,6 @@
 import {
   DEFAULT_USER_AGENT,
+  detectBlocked,
   detectStock,
   fetchPage,
   inspectStockSignals,
@@ -30,8 +31,9 @@ export default async function handler(req, res) {
     const requestId = crypto.randomUUID();
     console.log(`[check-stock] ${requestId} start url=${url}`);
     const page = await fetchPage(url, REQUEST_TIMEOUT_MS, USER_AGENT);
-    const result = detectStock(page.html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
     const debug = inspectStockSignals(page.html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
+    const blocked = detectBlocked(page.html);
+    const result = blocked ?? detectStock(page.html, AVAILABLE_TEXTS, UNAVAILABLE_TEXTS);
 
     console.log(
       `[check-stock] ${requestId} fetch finalUrl=${page.finalUrl} status=${page.status} redirected=${page.redirected} contentType=${page.contentType ?? "n/a"} server=${page.server ?? "n/a"}`,

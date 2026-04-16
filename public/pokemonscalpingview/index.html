@@ -359,6 +359,8 @@
 
             if (payload.status === "out_of_stock") {
               setStatus(`Attempt ${attempts}: still out of stock via "${payload.match}".`, "neutral");
+            } else if (payload.status === "blocked") {
+              setStatus(`Attempt ${attempts}: Lazada returned an anti-bot page.`, "error");
             } else {
               setStatus(`Attempt ${attempts}: stock state is unclear. Retrying...`, "neutral");
             }
@@ -410,7 +412,8 @@
 
         const available = (debug.availableFound || []).map((item) => item.candidate).join(", ") || "none";
         const unavailable = (debug.unavailableFound || []).map((item) => item.candidate).join(", ") || "none";
-        debugSummary.textContent = `Debug summary: html=${debug.htmlLength}, normalized=${debug.normalizedLength}, available markers=${available}, unavailable markers=${unavailable}.`;
+        const blocked = debug.contains?.captchaRaw || debug.contains?.windowLocationRaw;
+        debugSummary.textContent = `Debug summary: html=${debug.htmlLength}, normalized=${debug.normalizedLength}, available markers=${available}, unavailable markers=${unavailable}, blocked=${blocked ? "yes" : "no"}.`;
         debugDetail.textContent =
           `finalUrl: ${debug.finalUrl || "n/a"}\n` +
           `responseStatus: ${debug.responseStatus ?? "n/a"}\n` +
