@@ -1,0 +1,5 @@
+node_modules/
+.playwright-profile/
+debug.html
+watch.log
+.vercel/

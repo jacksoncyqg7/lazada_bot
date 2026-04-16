@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pokemonscalpingview</title>
+    <style>
+      :root {
+        --bg: #f7f1dd;
+        --panel: rgba(255, 251, 241, 0.9);
+        --ink: #17212b;
+        --muted: #6a6b68;
+        --accent: #d94f04;
+        --accent-dark: #9f3300;
+        --line: rgba(23, 33, 43, 0.12);
+        --success: #1d7a34;
+        --error: #b12828;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(255, 178, 102, 0.55), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(235, 99, 38, 0.2), transparent 28%),
+          linear-gradient(180deg, #f9f3e6 0%, #f1e7c8 100%);
+      }
+
+      main {
+        width: min(760px, calc(100% - 32px));
+        margin: 48px auto;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 18px 60px rgba(72, 49, 20, 0.12);
+        backdrop-filter: blur(10px);
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 6vw, 4rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+        margin-top: 26px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 180px;
+        gap: 14px;
+      }
+
+      label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      input[type="url"] {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px 18px;
+        font: inherit;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      input[type="number"] {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px 18px;
+        font: inherit;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      input[type="url"]:focus,
+      input[type="number"]:focus {
+        outline: 2px solid rgba(217, 79, 4, 0.25);
+        border-color: rgba(217, 79, 4, 0.6);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        padding: 16px 20px;
+        font: inherit;
+        font-weight: 700;
+        color: #fff9f0;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+        box-shadow: 0 14px 30px rgba(159, 51, 0, 0.24);
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.75;
+        transform: none;
+      }
+
+      .secondary {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--line);
+        box-shadow: none;
+      }
+
+      .status {
+        min-height: 24px;
+        font-size: 0.98rem;
+        font-weight: 600;
+      }
+
+      .status[data-tone="neutral"] {
+        color: var(--muted);
+      }
+
+      .status[data-tone="success"] {
+        color: var(--success);
+      }
+
+      .status[data-tone="error"] {
+        color: var(--error);
+      }
+
+      .note {
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        font-size: 0.92rem;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.55);
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      @media (max-width: 640px) {
+        .row,
+        .actions,
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <h1>pokemonscalpingview</h1>
+        <p>Paste a Lazada Singapore product URL and start the monitor. The page keeps polling for an <code>Add to Cart</code> signal, and when stock is detected it opens the Lazada product page immediately.</p>
+
+        <form class="stack" id="check-form">
+          <label for="product-url">Lazada URL</label>
+          <div class="row">
+            <input
+              id="product-url"
+              name="url"
+              type="url"
+              inputmode="url"
+              placeholder="https://s.lazada.sg/..."
+              required
+            />
+            <input
+              id="poll-interval"
+              name="interval"
+              type="number"
+              min="1"
+              max="60"
+              step="1"
+              value="1"
+              required
+            />
+          </div>
+          <div class="actions">
+            <button id="start-button" type="submit">Start Monitoring</button>
+            <button id="stop-button" class="secondary" type="button" disabled>Stop</button>
+          </div>
+          <div class="status" id="status" data-tone="neutral">Waiting for a URL.</div>
+        </form>
+
+        <div class="metrics">
+          <div class="metric">
+            <strong id="attempt-count">0</strong>
+            <span>Checks</span>
+          </div>
+          <div class="metric">
+            <strong id="last-match">n/a</strong>
+            <span>Last Match</span>
+          </div>
+          <div class="metric">
+            <strong id="last-time">n/a</strong>
+            <span>Last Check</span>
+          </div>
+        </div>
+
+        <p class="note">Allow pop-ups for this page. The popup window is reserved when monitoring starts, then navigated to Lazada only if the server reports stock.</p>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("check-form");
+      const input = document.getElementById("product-url");
+      const intervalInput = document.getElementById("poll-interval");
+      const startButton = document.getElementById("start-button");
+      const stopButton = document.getElementById("stop-button");
+      const status = document.getElementById("status");
+      const attemptCount = document.getElementById("attempt-count");
+      const lastMatch = document.getElementById("last-match");
+      const lastTime = document.getElementById("last-time");
+      let activeRunId = 0;
+      let polling = false;
+      let attempts = 0;
+      let popup = null;
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const url = input.value.trim();
+        const intervalSeconds = Number(intervalInput.value);
+
+        if (!url) {
+          setStatus("Paste a Lazada URL first.", "error");
+          return;
+        }
+
+        if (!Number.isFinite(intervalSeconds) || intervalSeconds < 1) {
+          setStatus("Polling interval must be at least 1 second.", "error");
+          return;
+        }
+
+        try {
+          popup = window.open("", "_blank");
+          if (popup) {
+            popup.document.write("<title>Monitoring stock...</title><p style='font-family: Georgia, serif; padding: 24px;'>Monitoring Lazada stock. This window will redirect when stock is found.</p>");
+          }
+        } catch {
+          popup = null;
+        }
+
+        activeRunId += 1;
+        polling = true;
+        attempts = 0;
+        updateMetrics({ attempts: 0, match: "n/a", time: "n/a" });
+        setBusy(true);
+        setStatus(`Monitoring every ${intervalSeconds}s...`, "neutral");
+
+        const runId = activeRunId;
+        while (polling && runId === activeRunId) {
+          attempts += 1;
+          updateMetrics({
+            attempts,
+            match: lastMatch.textContent,
+            time: new Date().toLocaleTimeString(),
+          });
+
+          try {
+            const response = await fetch("/api/check-stock", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({ url }),
+            });
+
+            const payload = await response.json();
+
+            if (!response.ok) {
+              throw new Error(payload.error || "Request failed.");
+            }
+
+            updateMetrics({
+              attempts,
+              match: payload.match || "n/a",
+              time: new Date().toLocaleTimeString(),
+            });
+
+            if (payload.status === "in_stock") {
+              setStatus(`Stock detected via "${payload.match}". Opening product page.`, "success");
+              polling = false;
+              setBusy(false);
+              if (popup && !popup.closed) {
+                popup.location.replace(url);
+                popup.focus();
+              } else {
+                window.open(url, "_blank");
+              }
+              return;
+            }
+
+            if (payload.status === "out_of_stock") {
+              setStatus(`Attempt ${attempts}: still out of stock via "${payload.match}".`, "neutral");
+            } else {
+              setStatus(`Attempt ${attempts}: stock state is unclear. Retrying...`, "neutral");
+            }
+          } catch (error) {
+            setStatus(`Attempt ${attempts} failed: ${error.message || "Unknown error"}. Retrying...`, "error");
+          }
+
+          await sleep(intervalSeconds * 1000);
+        }
+
+        setBusy(false);
+      });
+
+      stopButton.addEventListener("click", () => {
+        polling = false;
+        activeRunId += 1;
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        setStatus("Monitoring stopped.", "neutral");
+        setBusy(false);
+      });
+
+      function setBusy(isBusy) {
+        startButton.disabled = isBusy;
+        intervalInput.disabled = isBusy;
+        input.disabled = isBusy;
+        stopButton.disabled = !isBusy;
+        startButton.textContent = isBusy ? "Monitoring..." : "Start Monitoring";
+      }
+
+      function setStatus(message, tone) {
+        status.textContent = message;
+        status.dataset.tone = tone;
+      }
+
+      function updateMetrics({ attempts, match, time }) {
+        attemptCount.textContent = String(attempts);
+        lastMatch.textContent = match;
+        lastTime.textContent = time;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    </script>
+  </body>
+</html>
